@@ -1,5 +1,3 @@
-//Set up API key
-var APIKey ="d38f9130c718c3a63b0f1042af28c63b";
 
 //Variables
 var city="";
@@ -22,6 +20,10 @@ function find(c){
     }
     return 1;
 }
+//Set up API key
+var APIKey="d38f9130c718c3a63b0f1042af28c63b";
+//d38f9130c718c3a63b0f1042af28c63b
+//console.log(APIKey);
 
 //Display current weather and 5-day forecast after searching city from text box
 function displayWeather(event){
@@ -32,17 +34,18 @@ function displayWeather(event){
     }
 }
 
+
 //Function for AJAX call
 function currentWeather(city){
     //Request to servers to get data
-    var queryURL = "api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" +APIKey;
+    var queryURL = "https://api.openweathermap.org/data/2.5/weather?q="+city+"&appid=" +APIKey;
     $.ajax ({
         url: queryURL,
         method: "GET",
-    }).then(function(resonse){
+    }).then(function(response){
         //parse response to display city name, current weather, date, and weather icon
         var weathericon = response.weather[0].icon;
-        var iconurl = "https://openweathermap.org/img/wn/"+ weathericon +"@2x.png"
+        var iconurl = "https://openweathermap.org/img/wn/"+weathericon+"@2x.png"
         //Format date
         var date=new Date(response.dt*1000).toLocaleDateString();
         //Parse response for city name, concatonate date and weather icon
@@ -58,7 +61,7 @@ function currentWeather(city){
         var windsmph=(ws*2.237).toFixed(1);
         $(currentWindSpeed).html(windsmph+"MPH");
         //Display UV index
-        UVIndex(response.coor.lon,response.coord.lat);
+        UVIndex(response.coord.lon,response.coord.lat);
         forecast(response.id);
         if(response.cod==200){
             sCity=JSON.parse(localStorage.getItem("cityname"));
@@ -83,7 +86,7 @@ function currentWeather(city){
 
 //Return UV Index 
 function UVIndex(ln,lt){
-    var uvURL = "https://api.openweathermap.org/data/2.5/uvi?appid="+APIKey+"&lat="+lt+"&lon="+ln;
+    var uvURL = "http://api.openweathermap.org/data/2.5/uvi?appid="+APIKey+"&lat="+lt+"&lon="+ln;
     $.ajax({
         url:uvURL,
         method: "GET"
@@ -91,11 +94,18 @@ function UVIndex(ln,lt){
         $(currentUVIndex).html(response.value);
     });
 }
-
+//Changes UV index box color for intensity
+if (currentUVIndex.value > 7) {
+    document.querySelector("#uv-index").classList.add("bg-danger");
+} else if (currentUVIndex.value >= 2 && currentUVIndex.value <= 7) {
+    document.querySelector("#uv-index").classList.add("bg-warning");
+} else if (currentUVIndex.value <= 2) {
+    document.querySelector("#uv-index").classList.add("bg-success");
+}
 //5-day forecast
 function forecast(cityid){
     var dayover = false;
-    var queryforcastURL = "https://api.openweathermap.org/data/2.5/forecast?id="+cityid+"&appid="+APIKey;
+    var queryforcastURL = "http://api.openweathermap.org/data/2.5/forecast?id="+cityid+"&appid="+APIKey;
     $.ajax({
         url: queryforcastURL,
         method: "GET"
@@ -104,7 +114,7 @@ function forecast(cityid){
         for (i=0; i<5; i++){
             var date = new Date((response.list[((i+1)*8)-1].dt)*1000).toLocaleDateString();
             var iconcode = response.list[((i+1)*8)-1].weather[0].icon;
-            var iconurl = "https://openweathermap.org/img/wn/"+iconcode+".png";
+            var iconurl = "http://openweathermap.org/img/wn/"+iconcode+".png";
             var tempK = response.list[((i+1)*8)-1].main.temp;
             var tempF = (((tempK-273.5)*1.80)+32).toFixed(2);
             var humidity = response.list[((i+1)*8)-1].main.humidity;
@@ -151,7 +161,7 @@ function loadLastCity(){
 
 //Clear search button
 function clearHistory(event){
-    event.prevent();
+    event.preventDefault();
     sCity = [];
     localStorage.removeItem("cityname");
     document.location.reload();
@@ -161,4 +171,5 @@ function clearHistory(event){
 $("#search-button").on("click", displayWeather);
 $(document).on("click", invokePastSearch);
 $(window).on("load", loadLastCity);
-$("clear-history").on("click", clearHistory);
+$("#clear-history").on("click", clearHistory);
+
